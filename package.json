@@ -1,10 +1,9 @@
 {
   "name": "@yunke/load-proto",
-  "version": "1.0.3",
-  "main": "index.js",
+  "version": "1.0.4",
   "repository": "git@git.mysoft.com.cn:yued/load-proto.git",
   "license": "MIT",
-  "man": "build/index.js",
+  "main": "build/index.js",
   "typings": "build/index.d.ts",
   "scripts": {
     "build": "npm run clean && npm run compile",
