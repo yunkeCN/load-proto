@@ -1,6 +1,6 @@
 {
   "name": "@yunke/load-proto",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "repository": "git@git.mysoft.com.cn:yued/load-proto.git",
   "license": "MIT",
   "main": "build/index.js",
