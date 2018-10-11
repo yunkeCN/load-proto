@@ -8,6 +8,9 @@ import * as request from 'request';
 import * as unzip from 'unzip';
 import * as url from 'url';
 import { getArchiveUrls, getBranchLastCommitId } from "./git";
+import { loadFromJson } from "./loader";
+
+export { loadFromJson, createPackageDefinition } from './loader';
 
 const rmrf = require('rmrf');
 
@@ -30,10 +33,6 @@ async function downloadItem(
       .replace(/\/repository\/.+$/, '')
       .replace(/\//g, '_');
   const filePath = `${dir}/${zipName}.zip`;
-
-  if (fs.existsSync(filePath)) {
-    return { path: filePath, dir, url: urlStr };
-  }
 
   await new Promise((resolve, reject) => {
     mkdirp(dir, (err) => {
@@ -194,19 +193,28 @@ export async function loadProto(gitUrls: string[], branch: string, accessToken: 
   let root: Root;
   try {
     const branchLastCommitId = await getBranchLastCommitId(gitUrls[0], branch, accessToken);
-    const downloadResArr = await download(
-        [
-          // 公共依赖仓库
-          'https://git.myscrm.cn/golang/common/repository/master/archive.zip',
-          ...archiveUrls,
-        ],
-        accessToken,
-        (branchLastCommitId ? `${CACHE_DIR}/${branchLastCommitId}` : undefined),
-    );
-    tempDir = downloadResArr[0].dir;
-    const protoDirs = await unzipProcess(downloadResArr);
 
-    root = await pbjs(protoDirs.slice(1), tempDir);
+    const filePath = (branchLastCommitId ? `${CACHE_DIR}/${branchLastCommitId}` : undefined);
+    const jsonFilePath = (branchLastCommitId ? `${filePath}/json.json` : undefined);
+    if (!jsonFilePath || !fs.existsSync(jsonFilePath)) {
+      const downloadResArr = await download(
+          [
+            // 公共依赖仓库
+            'https://git.myscrm.cn/golang/common/repository/master/archive.zip',
+            ...archiveUrls,
+          ],
+          accessToken,
+          filePath,
+      );
+      tempDir = downloadResArr[0].dir;
+      let protoDirs = await unzipProcess(downloadResArr);
+      root = await pbjs(protoDirs.slice(1), tempDir);
+      if (jsonFilePath) {
+        fs.writeFileSync(jsonFilePath, JSON.stringify(root.toJSON({ keepComments: true })));
+      }
+    } else {
+      root = Root.fromJSON(require(jsonFilePath), new Root());
+    }
   } catch (e) {
     if (tempDir) {
       rmrf(tempDir);

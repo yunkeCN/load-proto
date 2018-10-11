@@ -74,7 +74,7 @@ function getAllServices(obj: Protobuf.NamespaceBase, parentName: string): Array<
   }
 }
 
-function createDeserializer(cls: Protobuf.Type, options: Options): Deserialize<object> {
+function createDeserializer(cls: Protobuf.Type, options?: Options): Deserialize<object> {
   return function deserialize(argBuf: Buffer): object {
     return cls.toObject(cls.decode(argBuf), options);
   };
@@ -90,7 +90,7 @@ function createSerializer(cls: Protobuf.Type): Serialize<object> {
 function createMethodDefinition(
   method: Protobuf.Method,
   serviceName: string,
-  options: Options,
+  options?: Options,
 ): MethodDefinition<object, object> {
   return {
     path: '/' + serviceName + '/' + method.name,
@@ -105,7 +105,7 @@ function createMethodDefinition(
   };
 }
 
-function createServiceDefinition(service: Protobuf.Service, name: string, options: Options): ServiceDefinition {
+function createServiceDefinition(service: Protobuf.Service, name: string, options?: Options): ServiceDefinition {
   const def: ServiceDefinition = {};
   for (const method of service.methodsArray) {
     def[method.name] = createMethodDefinition(method, name, options);
@@ -113,7 +113,7 @@ function createServiceDefinition(service: Protobuf.Service, name: string, option
   return def;
 }
 
-function createPackageDefinition(root: Protobuf.Root, options: Options): PackageDefinition {
+export function createPackageDefinition(root: Protobuf.Root, options?: Options): PackageDefinition {
   const def: PackageDefinition = {};
   for (const [name, service] of getAllServices(root, '')) {
     def[name] = createServiceDefinition(service, name, options);
