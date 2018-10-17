@@ -1,9 +1,9 @@
-import * as path from 'path';
-import * as glob from 'glob';
-import * as protobufjs from 'protobufjs';
-import { Root } from 'protobufjs';
 import { load } from '@yunke/load-git';
 import * as fsExtra from 'fs-extra';
+import * as glob from 'glob';
+import * as path from 'path';
+import * as protobufjs from 'protobufjs';
+import { Root } from 'protobufjs';
 
 export { loadFromJson, createPackageDefinition } from './loader';
 
@@ -94,11 +94,15 @@ export async function loadProto(gitUrls: string[], branch: string, accessToken: 
 
     const root = await pbjs(copyDirs.slice(1), tempDir);
 
-    await fsExtra.remove(tempDir);
+    try {
+      await fsExtra.remove(tempDir);
+    } catch (e) {
+      // nothing
+    }
 
     return root;
   } catch (e) {
-    rmrf(tempDir);
+    await fsExtra.remove(tempDir);
     throw e;
   }
 }
