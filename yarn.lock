@@ -79,10 +79,11 @@
   version "10.11.5"
   resolved "http://registry.npm.taobao.org/@types/node/download/@types/node-10.11.5.tgz#6489ebda4452592d3fd37aefa57eedc01ed13378"
 
-"@yunke/load-git@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry-npm.myscrm.cn/repository/yunke/@yunke/load-git/-/load-git-1.1.1.tgz#7bc073e1d51715edeac59c83825550896e5dfd7e"
+"@yunke/load-git@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry-npm.myscrm.cn/repository/yunke/@yunke/load-git/-/load-git-1.2.0.tgz#602e8ab6cb88a06a16b70f606a4129f35561fc58"
   dependencies:
+    fs-extra "^7.0.0"
     mkdirp "^0.5.1"
     request "^2.88.0"
     request-promise-native "^1.0.5"
