@@ -1,11 +1,11 @@
-import { load } from 'load-git';
 import * as fsExtra from 'fs-extra';
 import * as glob from 'glob';
+import { load } from 'load-git';
 import * as path from 'path';
 import * as protobufjs from 'protobufjs';
 import { Root } from 'protobufjs';
 
-export { createPackageDefinition } from './loader';
+export { loadFromJson, createPackageDefinition } from './loader';
 
 const CACHE_DIR = `${process.cwd()}/.load-proto-cache`;
 
