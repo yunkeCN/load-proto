@@ -38,11 +38,17 @@ async function pbjs(
     }
 
     if (/^google\/(protobuf|api)/.test(target)) {
-      return `${path.dirname(require.resolve('protobufjs'))}/${target}`;
+      return path.join(
+        path.dirname(require.resolve('protobufjs')),
+        target,
+      );
     } else if (origin) {
-      return `${includeDir}/${target}`;
+      return path.join(
+        includeDir,
+        target,
+      );
     }
-    return target;
+    return path.join(target);
   };
 
   return new Promise<any>((resolve, reject) => {
