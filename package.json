@@ -1,6 +1,6 @@
 {
   "name": "load-proto",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "repository": "https://github.com/yunkeCN/load-proto.git",
   "license": "MIT",
   "main": "build/index.js",
