@@ -9,13 +9,13 @@ export { loadFromJson, createPackageDefinition } from './loader';
 
 const CACHE_DIR = `${process.cwd()}/.load-proto-cache`;
 
-interface ProtoDdirs {
-  dir?: string;
-  rule?: string;
+interface IProtoDir {
+  dir: string;
+  rule: string;
 }
 
 async function pbjs(
-  protoDirs: ProtoDdirs[],
+  protoDirs: IProtoDir[],
   includeDir: string,
   resolvePath?: (origin: string, target: string, rootDir: string) => string | null | undefined | void,
 ): Promise<Root> {
@@ -84,7 +84,7 @@ interface IGitConfigWithUrl extends IGitConfig {
   url: string;
 }
 
-interface LoadResult {
+interface ILoadResult {
   parentDir: string;
   path: string;
   rule?: string;
@@ -104,7 +104,7 @@ export async function loadProto(opt: IOption): Promise<Root> {
     resolvePath,
   } = opt;
 
-  const loadRes: LoadResult[] = await Promise.all(gitUrls.map(async (gitUrl) => {
+  const loadRes: ILoadResult[] = await Promise.all(gitUrls.map(async (gitUrl) => {
     if (typeof gitUrl === 'string') {
       if (branch) {
         return load({ url: gitUrl, accessToken, branch });
