@@ -1,6 +1,6 @@
 {
   "name": "load-proto",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "repository": "https://github.com/yunkeCN/load-proto.git",
   "license": "MIT",
   "main": "build/index.js",
@@ -25,6 +25,6 @@
     "glob": "^7.1.3",
     "load-git": "^1.5.2",
     "lodash": "^4.17.13",
-    "protobufjs": "^6.8.8"
+    "protobufjs": "6.8.8"
   }
 }
