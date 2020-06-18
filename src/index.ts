@@ -1,26 +1,30 @@
 import * as fsExtra from 'fs-extra';
 import * as glob from 'glob';
-import { load } from 'load-git';
-import { loadHttp, LoadRes } from '@yunke/load-http'
 import * as path from 'path';
 import * as protobufjs from 'protobufjs';
 import { Root } from 'protobufjs';
-const queryString = require('query-string')
-
+import { load, LoadRes as LoadResponse } from 'load-git'
+const querystring = require('querystring')
+const url = require('url')
 
 export { loadFromJson, createPackageDefinition } from './loader';
 
 const CACHE_DIR = `${process.cwd()}/.load-proto-cache`;
 
+interface IProtoDir {
+  dir: string;
+  rule: string;
+}
+
 async function pbjs(
-  protoDirs: string[],
+  protoDirs: IProtoDir[],
   includeDir: string,
   resolvePath?: (origin: string, target: string, rootDir: string) => string | null | undefined | void,
 ): Promise<Root> {
   const protoFiles: string[] = [];
-  await Promise.all(protoDirs.map((dir) => {
+  await Promise.all(protoDirs.map((item) => {
     return new Promise((resolve, reject) => {
-      glob(`${dir}/**/*.proto`, (err, matches) => {
+      glob(`${item.dir}${item.rule}`, (err, matches) => {
         if (err) {
           reject(err);
           return;
@@ -75,16 +79,18 @@ async function pbjs(
 interface IGitConfig {
   branch?: string;
   accessToken?: string;
+  rule?: string;
 }
 
 interface IGitConfigWithUrl extends IGitConfig {
   url: string;
 }
 
-
-interface GitUrlInterface extends IGitConfigWithUrl {
-  protoType?: string;
-  lib?: string;
+interface ILoadResult {
+  parentDir: string;
+  path: string;
+  rule?: string;
+  clean?: boolean;
 }
 
 
@@ -92,7 +98,9 @@ export interface IOption extends IGitConfig {
   gitUrls: Array<IGitConfigWithUrl | string>;
   resolvePath?: (origin: string, target: string, rootDir: string) =>
     string | null | undefined | void;
+  loadProtoPlugin?: (option: IGitConfigWithUrl) => Promise<ILoadResult>
 }
+
 
 export async function loadProto(opt: IOption): Promise<Root> {
   const {
@@ -100,21 +108,20 @@ export async function loadProto(opt: IOption): Promise<Root> {
     branch,
     accessToken,
     resolvePath,
+    loadProtoPlugin
   } = opt;
 
-  const handleGitUrlQuery = (gitUrl: string): string => {
-    const parsed = queryString.parse(gitUrl) || {};
-    const { protoType = '' } = parsed
-    return protoType
-  }
-
-  const loadRes = await Promise.all(gitUrls.map((gitUrl: string | GitUrlInterface) => {
+  const loadRes: ILoadResult[] = await Promise.all(gitUrls.map(async (gitUrl) => {
     if (typeof gitUrl === 'string') {
       if (branch) {
-        const protoType = handleGitUrlQuery(gitUrl)
-        return protoType === 'http' ?
-          loadHttp({ url: gitUrl, accessToken, branch, protoType }) :
-          load({ url: gitUrl, accessToken, branch })
+        const options = { url: gitUrl, accessToken, branch }
+        if (loadProtoPlugin) {
+          const result: ILoadResult = await loadProtoPlugin(options)
+          if (result) {
+            return await loadProtoPlugin(options)
+          }
+        }
+        return await load(options);
       }
       throw new Error(`git url ${gitUrl} must specified a branch`);
     }
@@ -127,32 +134,42 @@ export async function loadProto(opt: IOption): Promise<Root> {
     if (typeof accessToken1 === 'undefined') {
       accessToken1 = accessToken;
     }
-
     if (branch1) {
-      const protoType = gitUrl.protoType || handleGitUrlQuery(url)
-      return protoType === 'http' ?
-        loadHttp({ url, accessToken: accessToken1, branch: branch1, protoType }) :
-        load({ url, accessToken: accessToken1, branch: branch1 })
+      const options = { url: url, accessToken: accessToken1, branch: branch1 }
+      if (loadProtoPlugin) {
+        const result: ILoadResult = await loadProtoPlugin(options)
+        if (result) {
+          return {
+            ...result,
+            rule: gitUrl.rule,
+          }
+        }
+      }
+      const loadResponse: LoadResponse = await load(options);
+      return {
+        parentDir: loadResponse.parentDir,
+        path: loadResponse.path,
+        rule: gitUrl.rule,
+      };
     }
     throw new Error(`git url ${url} must specified a branch: ${branch1}`);
   }));
-
   const tempDir = `${CACHE_DIR}/${Math.random()}-${Date.now()}`;
 
-
-  const deleteLoadGitCache = (dir: string[]) => {
-    if (!dir || !dir.length) return
-    dir.forEach(async (item: string) => await fsExtra.remove(item))
+  const deleteLoadGitCache = (cachedir: string[]) => {
+    if (!cachedir || !cachedir.length) return
+    cachedir.forEach(async (item: string) => await fsExtra.remove(item))
   }
 
-  const httpLoadGitCache: string[] = []
+  const pluginLoadGitCache: string[] = []
 
   try {
     await fsExtra.mkdirp(tempDir);
 
-    const copyDirs = await Promise.all(loadRes.map(async (res: LoadRes) => {
+    const copyDirs = await Promise.all(loadRes.map(async (res) => {
 
-      if (res.protoType === 'http') httpLoadGitCache.push(res.parentDir)
+      if (res.clean)
+        pluginLoadGitCache.push(res.parentDir)
 
       const dest = `${tempDir}/${path.relative(res.parentDir, res.path)}`;
 
@@ -166,14 +183,17 @@ export async function loadProto(opt: IOption): Promise<Root> {
           resolve();
         });
       });
-      return dest;
+      return {
+        dir: dest,
+        rule: res.rule || '/**/*.proto',
+      };
     }));
 
     const root = await pbjs(copyDirs, tempDir, resolvePath);
 
     try {
       await fsExtra.remove(tempDir);
-      deleteLoadGitCache(httpLoadGitCache)
+      deleteLoadGitCache(pluginLoadGitCache)
     } catch (e) {
       // nothing
     }
@@ -181,7 +201,7 @@ export async function loadProto(opt: IOption): Promise<Root> {
     return root;
   } catch (e) {
     await fsExtra.remove(tempDir);
-    deleteLoadGitCache(httpLoadGitCache)
+    deleteLoadGitCache(pluginLoadGitCache)
     throw e;
   }
 }
