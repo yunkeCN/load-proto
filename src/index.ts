@@ -84,6 +84,7 @@ interface IGitConfig {
 
 interface IGitConfigWithUrl extends IGitConfig {
   url: string;
+  source?: string;
 }
 
 interface ILoadResult {
@@ -118,7 +119,7 @@ export async function loadProto(opt: IOption): Promise<Root> {
         if (loadProtoPlugin) {
           const result: ILoadResult = await loadProtoPlugin(options)
           if (result) {
-            return await loadProtoPlugin(options)
+            return result
           }
         }
         return await load(options);
@@ -135,7 +136,9 @@ export async function loadProto(opt: IOption): Promise<Root> {
       accessToken1 = accessToken;
     }
     if (branch1) {
-      const options = { url: url, accessToken: accessToken1, branch: branch1 }
+      const options: any = { url: url, accessToken: accessToken1, branch: branch1 }
+      if (gitUrl.source) options.source = gitUrl.source
+
       if (loadProtoPlugin) {
         const result: ILoadResult = await loadProtoPlugin(options)
         if (result) {
