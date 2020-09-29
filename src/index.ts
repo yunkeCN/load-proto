@@ -76,13 +76,13 @@ async function pbjs(
   });
 }
 
-interface IGitConfig {
+export interface IGitConfig {
   branch?: string;
   accessToken?: string;
   rule?: string;
 }
 
-interface IGitConfigWithUrl extends IGitConfig {
+export interface IGitConfigWithUrl extends IGitConfig {
   url: string;
   source?: string;
 }
