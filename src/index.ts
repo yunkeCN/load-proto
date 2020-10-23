@@ -4,8 +4,6 @@ import * as path from 'path';
 import * as protobufjs from 'protobufjs';
 import { Root } from 'protobufjs';
 import { load, LoadRes as LoadResponse } from 'load-git'
-const querystring = require('querystring')
-const url = require('url')
 
 export { loadFromJson, createPackageDefinition } from './loader';
 
@@ -136,8 +134,12 @@ export async function loadProto(opt: IOption): Promise<Root> {
       accessToken1 = accessToken;
     }
     if (branch1) {
-      const options: any = { url: url, accessToken: accessToken1, branch: branch1 }
-      if (gitUrl.source) options.source = gitUrl.source
+      const options: IGitConfigWithUrl = {
+        url: url,
+        accessToken: accessToken1,
+        branch: branch1,
+        source: gitUrl.source,
+      };
 
       if (loadProtoPlugin) {
         const result: ILoadResult = await loadProtoPlugin(options)
