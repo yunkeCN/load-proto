@@ -85,7 +85,7 @@ export interface IGitConfigWithUrl extends IGitConfig {
   source?: string;
 }
 
-interface ILoadResult {
+export interface ILoadResult {
   parentDir: string;
   path: string;
   rule?: string;
