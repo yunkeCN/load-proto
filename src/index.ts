@@ -1,8 +1,8 @@
 import * as fsExtra from 'fs-extra';
 import * as glob from 'glob';
 import * as path from 'path';
-import * as protobufjs from 'protobufjs';
-import { Root } from 'protobufjs';
+import * as protobufjs from '@yunke/protobufjs';
+import { Root } from '@yunke/protobufjs';
 import { load, LoadRes as LoadResponse } from 'load-git'
 
 export { loadFromJson, createPackageDefinition } from './loader';
@@ -180,7 +180,7 @@ export async function loadProto(opt: IOption): Promise<Root> {
 
       await fsExtra.mkdirp(dest);
 
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         fsExtra.copy(res.path, dest, (err: Error) => {
           if (err) {
             reject(err);

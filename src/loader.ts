@@ -21,8 +21,8 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
-import * as Protobuf from 'protobufjs';
-import { INamespace } from 'protobufjs';
+import * as Protobuf from '@yunke/protobufjs';
+import { INamespace } from '@yunke/protobufjs';
 
 export type Serialize<T> = (value: T) => Buffer;
 
