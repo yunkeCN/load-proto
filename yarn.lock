@@ -201,10 +201,10 @@
     semver "^6.3.0"
     tsutils "^3.17.1"
 
-"@yunke/protobufjs@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry-npm.myscrm.cn/repository/yunke/@yunke/protobufjs/-/protobufjs-1.0.5.tgz#f7a7a435669c59e737a5be4333916cf9a881a7fa"
-  integrity sha512-HJuaQUK+h7ae+JNJsI0NRLgXnMNRcurywffTLNodBIL6u+bKvs+Kjgjg+IYDwo57rKBWjfh9A3cVq85KWzkByg==
+"@yunke/protobufjs@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry-npm.myscrm.cn/repository/yunke/@yunke/protobufjs/-/protobufjs-1.0.6.tgz#ac02a94d27ec75602d2a0527f5cce3fee30199db"
+  integrity sha512-ZGUD25JD0j8O9RwK7lhduIVen3oo3YGy5L4VEepDEY0CZlAFbXl/Ygxk4KNMxYgQAjGcUTRrU2SGCfVuGuNBgg==
   dependencies:
     "@protobufjs/aspromise" "^1.1.2"
     "@protobufjs/base64" "^1.1.2"
