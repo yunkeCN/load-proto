@@ -44,7 +44,7 @@ async function pbjs(
 
     if (/^google\/(protobuf|api)/.test(target)) {
       return path.join(
-        path.dirname(require.resolve('protobufjs')),
+        path.dirname(require.resolve('@yunke/protobufjs')),
         target,
       );
     } else if (origin) {
