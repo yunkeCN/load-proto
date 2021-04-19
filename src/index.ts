@@ -100,17 +100,25 @@ export interface IOption extends IGitConfig {
   loadProtoPlugin?: (option: IGitConfigWithUrl) => Promise<ILoadResult>
 }
 
-
+// 下载git proto仓库，生成grpc所需root
 export async function loadProto(opt: IOption): Promise<Root> {
+  const loadRes: ILoadResult[] = await loadResult(opt);
+  return await genRoot(loadRes, opt.resolvePath)
+}
+
+/**
+ * 根据git url/branch/accessToken 下载proto文件，返回文件存放路径
+ * @param opt 
+ * @returns 
+ */
+export async function loadResult(opt: IOption): Promise<ILoadResult[]> {
   const {
     gitUrls,
     branch,
     accessToken,
-    resolvePath,
     loadProtoPlugin
   } = opt;
-
-  const loadRes: ILoadResult[] = await Promise.all(gitUrls.map(async (gitUrl) => {
+  return await Promise.all(gitUrls.map(async (gitUrl) => {
     if (typeof gitUrl === 'string') {
       if (branch) {
         const options = { url: gitUrl, accessToken, branch }
@@ -159,6 +167,16 @@ export async function loadProto(opt: IOption): Promise<Root> {
     }
     throw new Error(`git url ${url} must specified a branch: ${branch1}`);
   }));
+}
+
+/**
+ * 根据proto文件存放记录生成grpc所需root
+ * @param loadRes 
+ * @param resolvePath 
+ * @returns 
+ */
+export async function genRoot(loadRes: ILoadResult[], resolvePath?: (origin: string, target: string, rootDir: string) =>
+  string | null | undefined | void): Promise<Root> {
   const tempDir = `${CACHE_DIR}/${Math.random()}-${Date.now()}`;
 
   const deleteLoadGitCache = (cachedir: string[]) => {
