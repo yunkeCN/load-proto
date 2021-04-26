@@ -7,7 +7,8 @@ import { load, LoadRes as LoadResponse } from 'load-git'
 
 export { loadFromJson, createPackageDefinition } from './loader';
 
-const CACHE_DIR = `${process.cwd()}/.load-proto-cache`;
+const PROTO_CACHE = ".load-proto-cache";
+const CACHE_DIR = `${process.cwd()}/${PROTO_CACHE}`;
 
 interface IProtoDir {
   dir: string;
@@ -103,7 +104,8 @@ export interface IOption extends IGitConfig {
 // 下载git proto仓库，生成grpc所需root
 export async function loadProto(opt: IOption): Promise<Root> {
   const loadRes: ILoadResult[] = await loadResult(opt);
-  return await genRoot(loadRes, opt.resolvePath)
+  const { root } = await genRoot(loadRes, opt.resolvePath);
+  return root;
 }
 
 /**
@@ -170,13 +172,16 @@ export async function loadResult(opt: IOption): Promise<ILoadResult[]> {
 }
 
 /**
- * 根据proto文件存放记录生成grpc所需root
+ * 根据proto文件存放记录生成grpc所需root,每次都会生成新的proto
  * @param loadRes 
  * @param resolvePath 
  * @returns 
  */
-export async function genRoot(loadRes: ILoadResult[], resolvePath?: (origin: string, target: string, rootDir: string) =>
-  string | null | undefined | void): Promise<Root> {
+export async function genRoot(
+  loadRes: ILoadResult[],
+  resolvePath?: (origin: string, target: string, rootDir: string) =>
+    string | null | undefined | void
+): Promise<{ root: Root, protoDir: Array<{ dir: string, rule: string }> }> {
   const tempDir = `${CACHE_DIR}/${Math.random()}-${Date.now()}`;
 
   const deleteLoadGitCache = (cachedir: string[]) => {
@@ -221,10 +226,32 @@ export async function genRoot(loadRes: ILoadResult[], resolvePath?: (origin: str
       // nothing
     }
 
-    return root;
+    return { root, protoDir: copyDirs };
   } catch (e) {
     await fsExtra.remove(tempDir);
     deleteLoadGitCache(pluginLoadGitCache)
     throw e;
   }
+}
+
+/**
+ * 根据proto文件存放记录生成grpc所需root
+ * @param loadRes
+ * @param resolvePath
+ * @returns
+ */
+export async function genRootByCache(
+  protoDirs: Array<{ dir: string, rule: string }>,
+  resolvePath?: (origin: string, target: string, rootDir: string) =>
+    string | null | undefined | void,
+): Promise<Root> {
+  // 取出前面的路径
+  const itemPath = protoDirs[0].dir;
+  const items = itemPath.split(`${PROTO_CACHE}/`);
+  const cwd = items[0];
+  const randomStr = items[1].split("/")[0];
+  const tempDir = cwd + PROTO_CACHE + "/" + randomStr;
+
+  const root = await pbjs(protoDirs, tempDir, resolvePath);
+  return root;
 }

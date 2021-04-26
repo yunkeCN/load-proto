@@ -3,5 +3,7 @@ yarn-error.log
 build
 .idea
 node_modules
+.load-git-cache
+.load-proto-cache
 
 .vscode/launch.json
